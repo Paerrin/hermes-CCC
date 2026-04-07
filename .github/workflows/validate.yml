@@ -1,0 +1,110 @@
+name: validate
+
+on:
+  push:
+    paths:
+      - "README.md"
+      - "install.sh"
+      - "install.ps1"
+      - "CLAUDE.md"
+      - ".github/workflows/validate.yml"
+      - "docs/**"
+      - "skills/**"
+  pull_request:
+    paths:
+      - "README.md"
+      - "install.sh"
+      - "install.ps1"
+      - "CLAUDE.md"
+      - ".github/workflows/validate.yml"
+      - "docs/**"
+      - "skills/**"
+
+jobs:
+  structure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate bash installer syntax
+        run: bash -n install.sh
+
+      - name: Validate PowerShell installer syntax
+        run: pwsh -NoProfile -Command "[void][scriptblock]::Create((Get-Content -Raw './install.ps1'))"
+
+      - name: Validate package structure and skill content
+        shell: python
+        run: |
+          import pathlib
+          import re
+          import sys
+
+          root = pathlib.Path(".")
+          required_files = [
+              root / "README.md",
+              root / "install.sh",
+              root / "install.ps1",
+              root / "CLAUDE.md",
+              root / "docs" / "migration-guide.md",
+              root / "docs" / "tool-mapping.md",
+              root / ".github" / "workflows" / "validate.yml",
+          ]
+
+          missing = [str(path) for path in required_files if not path.exists()]
+          if missing:
+              print("Missing required files:")
+              for path in missing:
+                  print(f"- {path}")
+              sys.exit(1)
+
+          skills_dir = root / "skills"
+          if not skills_dir.exists():
+              print("skills directory is missing")
+              sys.exit(1)
+
+          skill_files = sorted(skills_dir.glob("*/SKILL.md"))
+          if len(skill_files) != 18:
+              print(f"Expected 18 skill files, found {len(skill_files)}")
+              for path in skill_files:
+                  print(f"- {path}")
+              sys.exit(1)
+
+          required_frontmatter_keys = [
+              "name:",
+              "description:",
+              "version:",
+              "author:",
+              "license:",
+              "metadata:",
+          ]
+
+          for skill_file in skill_files:
+              text = skill_file.read_text(encoding="utf-8")
+              if not text.startswith("---\n"):
+                  print(f"{skill_file}: missing opening YAML frontmatter delimiter")
+                  sys.exit(1)
+              parts = text.split("---\n", 2)
+              if len(parts) < 3:
+                  print(f"{skill_file}: malformed YAML frontmatter")
+                  sys.exit(1)
+              frontmatter = parts[1]
+              body = parts[2]
+              for key in required_frontmatter_keys:
+                  if key not in frontmatter:
+                      print(f"{skill_file}: missing frontmatter key {key}")
+                      sys.exit(1)
+              body_lines = [line for line in body.splitlines() if line.strip()]
+              if len(body_lines) < 100:
+                  print(f"{skill_file}: body has only {len(body_lines)} non-empty lines, expected at least 100")
+                  sys.exit(1)
+              if re.search(r"\t", body):
+                  print(f"{skill_file}: contains tab characters; use spaces for readability")
+                  sys.exit(1)
+
+          print("Validation passed.")
