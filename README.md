@@ -40,7 +40,7 @@ cd hermes-CCC
 
 **One-liner (Unix):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Paerrin/hermes-CCC/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Paerrin/hermes-CCC/blob/master/install.sh | bash
 ```
 
 Restart Claude Code after install to activate all skills.
