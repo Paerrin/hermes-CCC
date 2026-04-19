@@ -1,9 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SOURCE_DIR="${SCRIPT_DIR}/skills"
 DEST_DIR="${HOME}/.claude/skills"
+REPO_URL="https://github.com/Paerrin/hermes-CCC"
+
+# When piped via curl, BASH_SOURCE[0] is unset — clone the repo to a temp dir
+if [[ -z "${BASH_SOURCE[0]:-}" || ! -f "${BASH_SOURCE[0]}" ]]; then
+  TMP_DIR="$(mktemp -d)"
+  trap 'rm -rf "${TMP_DIR}"' EXIT
+  echo "Cloning ${REPO_URL} ..."
+  git clone --depth 1 "${REPO_URL}" "${TMP_DIR}/hermes-CCC"
+  SOURCE_DIR="${TMP_DIR}/hermes-CCC/skills"
+else
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  SOURCE_DIR="${SCRIPT_DIR}/skills"
+fi
 
 if [[ ! -d "${SOURCE_DIR}" ]]; then
   echo "skills directory not found: ${SOURCE_DIR}" >&2
