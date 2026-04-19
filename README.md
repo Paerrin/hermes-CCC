@@ -26,21 +26,21 @@ Built by [AlexAI-MCP](https://github.com/AlexAI-MCP).
 ## Install
 
 ```bash
-git clone https://github.com/AlexAI-MCP/hermes-CCC
+git clone https://github.com/Paerrin/hermes-CCC
 cd hermes-CCC
 chmod +x install.sh && ./install.sh
 ```
 
 **Windows (PowerShell):**
 ```powershell
-git clone https://github.com/AlexAI-MCP/hermes-CCC
+git clone https://github.com/Paerrin/hermes-CCC
 cd hermes-CCC
 .\install.ps1
 ```
 
 **One-liner (Unix):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/AlexAI-MCP/hermes-CCC/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Paerrin/hermes-CCC/master/install.sh | bash
 ```
 
 Restart Claude Code after install to activate all skills.
